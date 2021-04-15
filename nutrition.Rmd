@@ -1,0 +1,107 @@
+---
+title: "Nutrition"
+author: "Jonah Maroszek"
+date: "4/13/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+```
+
+```{r define nutrition functions}
+#model to predict body fat percentage
+#ab is abdomen circumference in cm 
+bf = function(weight, ab){
+  return((-42.0533 -0.1241*weight + 0.9 * ab) / 100) #divide by 100 to get in decimal form
+}
+
+#calculate lean body mass from body fat percentage and weight
+lbm = function(weight, bf){
+  lbm.percent = 1 - bf
+  return(weight * lbm.percent)
+}
+
+#Basal Metabolic Rate - Katch Mcardle Formula
+#Calories burned daily not including activity level
+bmr = function(lbm){
+  return(370 + (9.82 * lbm))
+}
+
+
+# Sedentary (little to no exercise + work a desk job) = 1.2
+# Lightly Active (light exercise 1-3 days / week) = 1.375
+# Moderately Active (moderate exercise 3-5 days / week) = 1.55
+# Very Active (heavy exercise 6-7 days / week) = 1.725
+# Extremely Active (very heavy exercise, hard labor job, training 2x / day) = 1.9
+
+#total daily energy expenditure - calories burned daily w/ activity
+#DEFINE ACTIVITY BASED ON ABOVE TABLE
+tdee = function(bmr, activty){
+  return(bmr * activity)
+}
+
+#goal = 1 if desire fat loss
+#goal = 2 if desire is weight maintenance
+#goal = 3 if desire is muscle gain
+#adjusts calorie needs based on goal. 20% deficit for fat loss. 20% surplus for muscle gain
+cal.needs = function(tdee, goal){
+  if(goal == 1){
+    return(tdee * .8) 
+  }else if(goal == 2){
+    return(tdee)
+  }else{
+    return(tdee * 1.2)
+  }
+}
+
+#find how many grams of each macro to eat 
+#can input desired ratios as vector in the order of protein, fat, carbs. Default option provided if no specification
+macros = function(cal.needs, ratio = c(0.2,0.25,0.55)){
+  
+  #calculate calories needed from each macro
+  calories.from.protein = cal.needs * ratio[1]
+  calories.from.fat = cal.needs * ratio[2]
+  calories.from.carbs = cal.needs * ratio[3]
+  
+  #calculate grams needed from each macro
+  protein.g = calories.from.protein / 4
+  carb.g = calories.from.carbs / 4
+  fat.g = calories.from.fat / 9
+ 
+  return(c(protein.g, carb.g, fat.g))
+}
+
+nutrition = function(weight, ab, activity, goal){
+  bf = bf(weight, ab)
+  lbm = lbm(weight, bf)
+  bmr = bmr(lbm)
+  tdee = tdee(bmr, activity)
+  cal.needs = cal.needs(tdee, goal)
+  macros = macros(cal.needs)
+  
+  return(c("BF%" = bf * 100,
+    "LBM" = lbm,
+    "BMR" = bmr,
+    "TDEE" = tdee,
+    "Calories" = cal.needs,
+    "Protein" = macros[1],
+    "Carbs" = macros[2],
+    "Fat" = macros[3]))
+}
+
+```
+
+```{r}
+
+#examples for data visualization assignment
+person.a = nutrition(209,114,1.2,1)
+person.b = nutrition(150, 81,1.55,3)
+person.c = nutrition(120,97,1.9,2)
+person.d = nutrition(184,104,1.375,1)
+
+
+
+```
+
