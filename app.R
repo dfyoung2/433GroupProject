@@ -36,13 +36,13 @@ server <- function(input, output) {
                        "Waist-Hip Ratio" = WHR_plot,
                        "Systolic Blood Pressure" = BPSY_plot,
                        "Daily Fiber Intake" = fiber_plot)
-    metric + title(main = input$selected.var)
+    metric 
   })
   output$Predictability <- renderPlot({
     prediction <- switch(input$Predictability, 
                          "BMI" = BMI_predict,
                          "Waist-hip Ratio" = WHR_predict)
-    prediction + title(main = input$Predictability
+    prediction 
   })
 
 }
