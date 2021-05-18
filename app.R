@@ -42,7 +42,7 @@ server <- function(input, output) {
     prediction <- switch(input$Predictability, 
                          "BMI" = BMI_predict,
                          "Waist-hip Ratio" = WHR_predict)
-    prediction + title(main = input$Predictability)
+    prediction + title(main = input$Predictability
   })
 
 }
