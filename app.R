@@ -1,73 +1,50 @@
 library(shiny)
-source("C:\\stat 433\\433GroupProject\\nutrition.R")
-source("C:\\stat 433\\433GroupProject\\nutrition database\\nutrition database\\part 3.R")
+source("C:\\stat 433\\433GroupProject\\Final Project\\diabetes data visualization.R")
+source("C:\\stat 433\\433GroupProject\\Final Project\\predictive models.R")
 
 ui <- fluidPage(
-  titlePanel("Nutrition Info"),
+  titlePanel("Analysis of Fasting Plasma Glucose"),
   
   sidebarLayout(
     sidebarPanel(
       
-      #Help text to help user understand what each level of exercise means
-      helpText("Sedentary: little to no exercise + work a desk job"),
-      helpText("Lightly Active: light exercise 1-3 days per week"),
-      
-      helpText("Moderately Active: moderate exercise 3-5 days per week"),
-      
-      helpText("Very Active: heavy exercise 6-7 days per week"),
-      helpText("Extremely Active: very heavy exercise, hard labor job, training 2x per day"),
-      
+      helpText("Select a metric to display its relation to Fasting Plasma Glucose."),
       #Selection input for varying levels of exercise
-      selectInput("activity.level", 
-                  label = "Choose your rate of exercise",
-                  choices = c("Sedentary", "Lightly Active", "Moderately Active",
-                              "Very Active", "Extremely Active"),
-                  selected = "Sedentary"),
+      selectInput("selected.var", 
+                  label = "Metric",
+                  choices = c("BMI", 
+                              "Waist-Hip Ratio",
+                              "Systolic Blood Pressure",
+                              "Daily Fiber Intake"),
+                  selected = "BMI"),
       
-      #Numeric input for the user's weight in pounds
-      numericInput("weight", 
-                  label = "Select your weight (pounds)", value = 150,
-                  min = 0, max = 400, step = 1),
-
-      #Numeric input of the user's abdomen(waist) size in centimeters                  
-      numericInput("abdomen.size",
-                   label = "Select your waist size (centimeters, multiply waist circumference, in inches by 2.54)",
-                   value = 30, min = 10, max = 100, step = 1),
-      
-      #Radio button input so the user can select their goal of fat loss, weight maintenance, or muscle gain
-      selectInput("goal", label = "What's your goal?",
-                   choices = c("fat loss", "weight maintenance", "muscle gain"))
+      #Selection Input for predictive models
+      selectInput("Predictability", label = "Select a predicitability chart",
+                   choices = c("BMI", "Waist-hip Ratio"),
+                  selected = "BMI")
     ),
     
-    mainPanel(textOutput("responses"))
+    mainPanel(plotOutput("selected.var"), plotOutput("Predictability"))
   )
 )
 
 # Server logic ----
 server <- function(input, output) {
-  output$responses <- renderText({
-    activity <- switch(input$activity.level,
-                       "Sedentary" = 1.2,
-                       "Lightly Active" = 1.375,
-                       "Moderately Active" = 1.55,
-                       "Very Active" = 1.725,
-                       "Extremely Active" = 1.9)
-    objective <- switch(input$goal, 
-                     "fat loss" = 1,
-                     "weight maintenance" = 2,
-                     "muscle gain" = 3)
-    
-    n.info <- nutrition(input$weight, input$abdomen.size, activity, objective)
-    
-    paste("BF%: ",n.info[1],
-           "  LBM: ",n.info[2], 
-           "  BMR: ",n.info[3],
-           "  TDEE: ",n.info[4],
-           "  Calories:", n.info[5],
-           "  Protein: ",n.info[6], "grams",
-           "  Carbs: ",n.info[7], "grams",
-           "  Fat: ",n.info[8], "grams")
+  output$selected.var <- renderPlot({
+    metric <- switch(input$selected.var,
+                       "BMI" = BMI_plot,
+                       "Waist-Hip Ratio" = WHR_plot,
+                       "Systolic Blood Pressure" = BPSY_plot,
+                       "Daily Fiber Intake" = fiber_plot)
+    metric + title(main = input$selected.var)
   })
+  output$Predictability <- renderPlot({
+    prediction <- switch(input$Predictability, 
+                         "BMI" = BMI_predict,
+                         "Waist-hip Ratio" = WHR_predict)
+    prediction + title(main = input$Predictability)
+  })
+
 }
 
 # Run app ----
